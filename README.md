@@ -16,6 +16,9 @@ une développée avec la surcouche `Archgui`.
 Ce n’est pour le moment qu’une demonstration incomplète. 
 Si vous souhaitez tester ce module, il est préférable de le faire dans un environnement dédié. 
 
+<br/>
+
+---
 
 ## 😊 Fonctionnalités principales :
 - Dimensionnement et positionnement simplifié des fenêtres.
@@ -26,11 +29,17 @@ Si vous souhaitez tester ce module, il est préférable de le faire dans un envi
 - Update simple des éléments d’une fenêtre.
 - Supporte le multithreading.
 
+<br/>
+
+---
 
 ## 💻 Fonctionne sous les OS :
 - Ubuntu 24.04 
 - Windows 11 (en cours de test)
 
+<br/>
+
+---
 
 ## 🛠️ Nécessite :
 - Anaconda
@@ -71,26 +80,117 @@ pip install freesimplegui
 ```
 La différence d’installation se fait entre le module `screeninfo` pour Ubuntu et `pywin32` pour Windows.
 
+<br/>
 
+---
 
 ## 🛠️ Utilisation :
 
-Lorsque les Windows ou Events sont modifiés, 
-le module doit être lancé avant le script principal pour la copie et la modification de `Loader.py`. 
-Cette partie est nécessaire pour la prise en compte des modifications. 
-Cela permet de facilité la compilation sous Nuitka.
+Après la création de nouvelles fenêtre, il est nécessaire de relancer le module par la commande ci-dessous. Cela est nécessaire pour l'intégration des fenêtres au fichier de lancement `ag_loader.py`.
 
 ```bash
 python -m archgui windows=ag_windows events=ag_events config=ag_config.json
-python monscript.py
+python test.py
 ```
-Il est nécessaire définir un dossier hors du module pour les Windows et Events ainsi 
-que le fichier de configuration par défaut. 
-
-
+Il est nécessaire définir un dossier respectif pour les Windows et Events.
+- Les fichiers du dossier `windows=` seront intégré dans le fichier `ag_loader.py`.
 - Les fichiers Events manquant seront générés dans le dossier défini par `events=`.
-- Le fichier de configuration par défaut défini par `config=` sera généré s’il n’existe pas.
+- Le fichier de configuration défini par `config=` sera créé à la racine de l'application s’il n’existe pas.
+- Le fichier de lancement du module `ag_loader.py` sera créé à la racine de l'application s’il n’existe pas.
 
+---
+
+## 🛠️ Premier lancement de test :
+
+#### Dossier initial:
+```
+.
+├── archgui
+├── ag_events
+├── ag_windows
+│   └── test.json
+└── test.py
+```
+
+#### Fichier: ag_windows/test.json :
+```json
+{
+    "parameters": {
+        "location_x": "50%",
+        "location_y": "50%",
+        "width": 516,
+        "height": 133
+    },
+    "items": [[
+        [{"t": "column", "k": "column_1", "p": [[0, 0], [0, 5]], "sc": false, "scvo": false}, [
+            [
+                [{"t": "frame", "k": "frame_1", "v": " Frame 1 "}, [
+                    [
+                        [{"t": "column", "k": "column_11", "p": [[5, 5], [0, 10]] }, [
+                            [
+                                [{"t": "label", "k": "label_1", "v": "label_1", "s": [14, 1]}],
+                                [{"t": "in_line", "k": "in_line_1", "v": "in_line_1", "s": [20, 1]}],
+                                [{"t": "button", "k": "button_1", "v": "button_1", "s": [16, 1]}]
+                            ],
+                            [
+                                [{"t": "in_line", "k": "in_line_2", "v": "in_line_2", "s": [50, 1]}]
+                            ]
+                        ]]
+                    ]
+                ]]
+            ]
+        ]]
+    ]]
+}
+```
+
+#### Fichier: test.py :
+```python
+from ag_loader import archgui
+
+
+ag = archgui()
+
+modules = {"archgui": ag}
+ag.define_modules(modules)
+
+test_uniqid = ag.open(
+    model="test",
+    wid="0",
+    title="Archgui - Test")
+
+ag.define_main(test_uniqid)
+
+ag.run()
+```
+
+#### Lancement du module :
+```bash
+python -m archgui windows=ag_windows events=ag_events config=ag_config.json
+```
+#### Dossier avec les fichiers créés :
+```
+.
+├── archgui
+├── ag_events
+│   └── test.py
+├── ag_windows
+│   └── test.json
+├── ag_loader.py
+└── test.py
+```
+
+#### Lancement du test :
+```bash
+python test.py
+```
+
+#### Fenêtre obtenue :
+
+![Image](https://github.com/Seblefdev/archgui-demo/blob/main/demo_img/test.png?raw=true)
+
+
+---
 
 ## 🛠️ Nuitka :
 Compilation en onefile sous Nuitka fonctionnelle.
@@ -107,12 +207,15 @@ python -m nuitka --onefile --enable-plugin=tk-inter demo.py
 ```
 
 <br/>
+<br/>
 
 ---
 
 #### Pour accéder à la partie suivante vous devez vous rendre au depot : [archgui-demo](https://github.com/Seblefdev/archgui-demo)
 
 ---
+<br/>
+
 ### 👉 Demo A :
 #### Manipulation des inputs inline text et button.
 
@@ -185,4 +288,3 @@ python -m nuitka --onefile --enable-plugin=tk-inter demo.py
 | `onclick: button_8`                                                                   | [`ag_windows/demo_e_8.json`](https://github.com/Seblefdev/archgui-demo/blob/main/ag_windows/demo_e_8.json) | [`ag_events/demo_e_8.py`](https://github.com/Seblefdev/archgui-demo/blob/main/ag_events/demo_e_8.py) |
 
 [![Image](https://github.com/Seblefdev/archgui-demo/blob/main/demo_img/demo_e_0.png?raw=true)](https://github.com/Seblefdev/archgui-demo/blob/main/demo_img/demo_e_1.png?raw=true)
-
