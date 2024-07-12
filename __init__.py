@@ -5,7 +5,7 @@ printer = Printer()
 windows = None
 
 
-def init():
+def init(config, specters, models_event):
 
     import matplotlib
 
@@ -17,16 +17,22 @@ def init():
     from sys import platform
 
     from .Windows import Windows
+    from .Model import Model
     from .Workarea import Workarea
-    from .Loader import Loader
 
     global windows
 
     workarea = Workarea(platform, fsg)
     windows = Windows(platform, plt, fsg, workarea)
 
-    loader = Loader(windows)
-    loader.run()
+    windows.load_config(config)
+
+    models_window = {}
+
+    for model in models_event:
+        models_window[model] = Model(windows, model, specters[model])
+
+    windows.load_models(models_window, models_event)
 
 
 def define_modules(modules):
@@ -61,7 +67,7 @@ def define_main(uniqid: str):
             return False
 
 
-def open(model: str, wid: str, lvl="usr", title=None, uniqid=None, location=None, size=None):
+def open(model: str, wid: str, title=None, uniqid=None, location=None, size=None):
 
     global printer
     global windows
@@ -71,7 +77,6 @@ def open(model: str, wid: str, lvl="usr", title=None, uniqid=None, location=None
         sys.exit()
     else:
         uniqid = windows.open(
-            lvl=lvl,
             model=model,
             wid=wid,
             title=title,

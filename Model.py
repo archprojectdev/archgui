@@ -25,10 +25,9 @@ def pisnt_null(parameters):
     if parameters["uniqid"] is None:
         not_null = False
 
-    if parameters["lvl"] is not None:
-        if parameters["model"] is not None:
-            if parameters["wid"] is not None:
-                not_null = True
+    if parameters["model"] is not None:
+        if parameters["wid"] is not None:
+            not_null = True
 
     return not_null
 
@@ -46,7 +45,7 @@ def pisnt_null(parameters):
 
 class Model:
 
-    def __init__(self, windows, lvl, model, specter):
+    def __init__(self, windows, model, specter):
 
         # -----------------------------------------------------------------
 
@@ -60,7 +59,6 @@ class Model:
 
         # -----------------------------------------------------------------
 
-        self.lvl = lvl
         self.model = model
         self.wid = None
         self.uniqid = None
@@ -86,49 +84,41 @@ class Model:
                 "width": None,
                 "height": None,
                 "location_x_relative": {
-                    "lvl": None,
                     "model": None,
                     "wid": None,
                     "uniqid": None
                 },
                 "location_y_relative": {
-                    "lvl": None,
                     "model": None,
                     "wid": None,
                     "uniqid": None
                 },
                 "location_x_equal": {
-                    "lvl": None,
                     "model": None,
                     "wid": None,
                     "uniqid": None
                 },
                 "location_y_equal": {
-                    "lvl": None,
                     "model": None,
                     "wid": None,
                     "uniqid": None
                 },
                 "width_equal": {
-                    "lvl": None,
                     "model": None,
                     "wid": None,
                     "uniqid": None
                 },
                 "height_equal": {
-                    "lvl": None,
                     "model": None,
                     "wid": None,
                     "uniqid": None
                 },
                 "width_until": {
-                    "lvl": None,
                     "model": None,
                     "wid": None,
                     "uniqid": None
                 },
                 "height_until": {
-                    "lvl": None,
                     "model": None,
                     "wid": None,
                     "uniqid": None
@@ -179,8 +169,8 @@ class Model:
                     size = self.windows.wds_uniqid[rel["uniqid"]].get_size()
                     location = self.windows.wds_uniqid[rel["uniqid"]].get_location()
                 else:
-                    size = self.windows.wds_windows[rel["lvl"]][rel["model"]][rel["wid"]].get_size()
-                    location = self.windows.wds_windows[rel["lvl"]][rel["model"]][rel["wid"]].get_location()
+                    size = self.windows.wds_windows[rel["model"]][rel["wid"]].get_size()
+                    location = self.windows.wds_windows[rel["model"]][rel["wid"]].get_location()
             except:
                 self.printer.error("set_location_x()", "MODEL_SET_LOCATION_X")
                 return False
@@ -194,7 +184,7 @@ class Model:
                 if rel["uniqid"] is not None and rel["uniqid"] in self.windows.wds_uniqid:
                     location = self.windows.wds_uniqid[rel["uniqid"]].get_location()
                 else:
-                    location = self.windows.wds_windows[rel["lvl"]][rel["model"]][rel["wid"]].get_location()
+                    location = self.windows.wds_windows[rel["model"]][rel["wid"]].get_location()
             except:
                 self.printer.error("set_location_x()", "MODEL_SET_LOCATION_X")
                 return False
@@ -235,8 +225,8 @@ class Model:
                     size = self.windows.wds_uniqid[rel["uniqid"]].get_size()
                     location = self.windows.wds_uniqid[rel["uniqid"]].get_location()
                 else:
-                    size = self.windows.wds_windows[rel["lvl"]][rel["model"]][rel["wid"]].get_size()
-                    location = self.windows.wds_windows[rel["lvl"]][rel["model"]][rel["wid"]].get_location()
+                    size = self.windows.wds_windows[rel["model"]][rel["wid"]].get_size()
+                    location = self.windows.wds_windows[rel["model"]][rel["wid"]].get_location()
             except:
                 self.printer.error("set_location_y()", "MODEL_SET_LOCATION_Y")
                 return False
@@ -251,7 +241,7 @@ class Model:
                 if rel["uniqid"] is not None and rel["uniqid"] in self.windows.wds_uniqid:
                     location = self.windows.wds_uniqid[rel["uniqid"]].get_location()
                 else:
-                    location = self.windows.wds_windows[rel["lvl"]][rel["model"]][rel["wid"]].get_location()
+                    location = self.windows.wds_windows[rel["model"]][rel["wid"]].get_location()
             except:
                 self.printer.error("set_location_y()", "MODEL_SET_LOCATION_Y")
                 return False
@@ -288,7 +278,7 @@ class Model:
                 if rel["uniqid"] is not None and rel["uniqid"] in self.windows.wds_uniqid:
                     size = self.windows.wds_uniqid[rel["uniqid"]].get_size()
                 else:
-                    size = self.windows.wds_windows[rel["lvl"]][rel["model"]][rel["wid"]].get_size()
+                    size = self.windows.wds_windows[rel["model"]][rel["wid"]].get_size()
             except:
                 self.printer.error("set_size_width()", "MODEL_SET_SIZE_WIDTH")
                 return False
@@ -302,7 +292,7 @@ class Model:
                 if rel["uniqid"] is not None and rel["uniqid"] in self.windows.wds_uniqid:
                     size = self.windows.wds_uniqid[rel["uniqid"]].get_location()
                 else:
-                    size = self.windows.wds_windows[rel["lvl"]][rel["model"]][rel["wid"]].get_location()
+                    size = self.windows.wds_windows[rel["model"]][rel["wid"]].get_location()
             except:
                 self.printer.error("set_size_width()", "MODEL_SET_SIZE_WIDTH")
                 return False
@@ -347,7 +337,7 @@ class Model:
                 if rel["uniqid"] is not None and rel["uniqid"] in self.windows.wds_uniqid:
                     size = self.windows.wds_uniqid[rel["uniqid"]].get_size()
                 else:
-                    size = self.windows.wds_windows[rel["lvl"]][rel["model"]][rel["wid"]].get_size()
+                    size = self.windows.wds_windows[rel["model"]][rel["wid"]].get_size()
             except:
                 self.printer.error("set_size_height()", "MODEL_SET_SIZE_HEIGHT")
                 return False
@@ -361,7 +351,7 @@ class Model:
                 if rel["uniqid"] is not None and rel["uniqid"] in self.windows.wds_uniqid:
                     height_size = self.windows.wds_uniqid[rel["uniqid"]].get_location()
                 else:
-                    height_size = self.windows.wds_windows[rel["lvl"]][rel["model"]][rel["wid"]].get_location()
+                    height_size = self.windows.wds_windows[rel["model"]][rel["wid"]].get_location()
             except:
                 self.printer.error("set_size_height()", "MODEL_SET_SIZE_HEIGHT")
                 return False
@@ -456,8 +446,8 @@ class Model:
         # -----------------------------------------------------------------
 
         self.window = self.fsg.Window(self.title, self.layout,
-                                              location=list_to_tuple(self.window_location),
-                                              size=list_to_tuple(self.window_size))
+                                      location=list_to_tuple(self.window_location),
+                                      size=list_to_tuple(self.window_size))
 
         self.window.finalize()
         self.window_size = self.window.current_size_accurate()
@@ -771,3 +761,4 @@ class Model:
 
     def close(self):
         self.window.close()
+        return True

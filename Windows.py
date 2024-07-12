@@ -109,16 +109,15 @@ class Windows:
             return False
 
     # ---------------------------------------------------------------------
-    # / Retourne l’UNIQID d’une fenêtre à partir du lvl + model + wid
+    # / Retourne l’UNIQID d’une fenêtre à partir du model + wid
     # ---------------------------------------------------------------------
 
-    def uniqid(self, model: str, wid: str, lvl="usr"):
+    def uniqid(self, model: str, wid: str):
 
         uniqid = None
-        if lvl in ["sys", "usr"]:
-            if model in self.wds_windows[lvl]:
-                if wid in self.wds_windows[lvl][model]:
-                    uniqid = self.wds_windows[lvl][model][wid].uniqid
+        if model in self.wds_windows:
+            if wid in self.wds_windows[model]:
+                uniqid = self.wds_windows[model][wid].uniqid
 
         if uniqid is not None:
             return uniqid
@@ -126,7 +125,7 @@ class Windows:
             return False
 
     # ---------------------------------------------------------------------
-    # / Retourne l’UNIQID d’une fenêtre à partir du lvl + model + wid
+    # / Retourne l’UNIQID d’une fenêtre à partir du model + wid
     # ---------------------------------------------------------------------
 
     def window(self, uniqid: str) -> bool:
@@ -153,27 +152,25 @@ class Windows:
     # / Retourne False si la fenêtre existe déjà
     # ---------------------------------------------------------------------
 
-    def open(self, model: str, wid: str, title: str, lvl="usr", uniqid=None, location=None, size=None):
+    def open(self, model: str, wid: str, title: str, uniqid=None, location=None, size=None):
 
         with self.lock:
 
             try:
-                if lvl not in ["sys", "usr"]:
-                    lvl = "usr"
 
-                if lvl not in self.wds_windows:
-                    self.wds_windows[lvl] = {}
-                    self.wds_events[lvl] = {}
+                if not isinstance(self.wds_windows, dict):
+                    self.wds_windows = {}
+                    self.wds_events = {}
 
-                if model not in self.wds_windows[lvl]:
-                    self.wds_windows[lvl][model] = {}
-                    self.wds_events[lvl][model] = {}
+                if model not in self.wds_windows:
+                    self.wds_windows[model] = {}
+                    self.wds_events[model] = {}
 
-                if wid not in self.wds_windows[lvl][model]:
-                    self.wds_windows[lvl][model][wid] = copy.copy(self.models_window[lvl][model])
-                    self.wds_events[lvl][model][wid] = copy.copy(self.models_event[lvl][model])
+                if wid not in self.wds_windows[model]:
+                    self.wds_windows[model][wid] = copy.copy(self.models_window[model])
+                    self.wds_events[model][wid] = copy.copy(self.models_event[model])
 
-                    simplegui = self.wds_windows[lvl][model][wid].open(
+                    simplegui = self.wds_windows[model][wid].open(
                         wid=wid,
                         title=title,
                         location=location,
@@ -184,15 +181,15 @@ class Windows:
                         uniqid = uuid.uuid4()
 
                     self.wds_simplegui[uniqid] = simplegui
-                    self.wds_uniqid[uniqid] = self.wds_windows[lvl][model][wid]
+                    self.wds_uniqid[uniqid] = self.wds_windows[model][wid]
                     self.wds_graphs[uniqid] = {}
 
-                    self.wds_windows[lvl][model][wid].uniqid = uniqid
-                    self.wds_events[lvl][model][wid].uniqid = uniqid
-                    self.wds_events[lvl][model][wid].wid = wid
+                    self.wds_windows[model][wid].uniqid = uniqid
+                    self.wds_events[model][wid].uniqid = uniqid
+                    self.wds_events[model][wid].wid = wid
 
-                    self.wds_events[lvl][model][wid].windows = self
-                    self.wds_events[lvl][model][wid].window = self.wds_windows[lvl][model][wid]
+                    self.wds_events[model][wid].windows = self
+                    self.wds_events[model][wid].window = self.wds_windows[model][wid]
 
                     return uniqid
 
@@ -270,7 +267,7 @@ class Windows:
     def close(self, uniqid: str) -> bool:
 
         try:
-            if uniqid is not None and uniqid in self.wds_uniqid:
+            if uniqid in self.wds_uniqid:
                 if self.wds_uniqid[uniqid].close():
                     self.close_and_purge(self.wds_simplegui[uniqid])
                     return True
@@ -452,7 +449,6 @@ class Windows:
         for uniqid in self.wds_simplegui:
             if self.wds_simplegui[uniqid] == window:
                 wds_deleted[uniqid] = {
-                    "lvl": self.wds_uniqid[uniqid].lvl,
                     "model": self.wds_uniqid[uniqid].model,
                     "wid": self.wds_uniqid[uniqid].wid
                 }
@@ -461,21 +457,21 @@ class Windows:
 
             del self.wds_graphs[uniqid]
             del self.wds_simplegui[uniqid]
+            del self.wds_uniqid[uniqid]
 
-            lvl = wds_deleted[uniqid]["lvl"]
             model = wds_deleted[uniqid]["model"]
             wid = wds_deleted[uniqid]["wid"]
 
-            del self.wds_windows[lvl][model][wid]
-            del self.wds_events[lvl][model][wid]
+            del self.wds_windows[model][wid]
+            del self.wds_events[model][wid]
 
-            if len(self.wds_windows[lvl][model]) == 0:
-                del self.wds_windows[lvl][model]
-                del self.wds_events[lvl][model]
+            if len(self.wds_windows[model]) == 0:
+                del self.wds_windows[model]
+                del self.wds_events[model]
 
-            if len(self.wds_windows[lvl]) == 0:
-                del self.wds_windows[lvl]
-                del self.wds_events[lvl]
+            if len(self.wds_windows) == 0:
+                del self.wds_windows
+                del self.wds_events
 
     # ---------------------------------------------------------------------
     # / Boucle d'écoute des Events
@@ -508,10 +504,9 @@ class Windows:
                 for uniqid in wds_simplegui_cp:
                     if uniqid in self.wds_simplegui:
                         if self.wds_simplegui[uniqid] == window:
-                            lvl = self.wds_uniqid[uniqid].lvl
                             model = self.wds_uniqid[uniqid].model
                             wid = self.wds_uniqid[uniqid].wid
-                            self.wds_events[lvl][model][wid].events(event, self.modules)
+                            self.wds_events[model][wid].events(event, self.modules)
 
                 del wds_simplegui_cp
 

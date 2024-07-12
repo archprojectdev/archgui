@@ -1,3 +1,4 @@
+from rich import print
 import os
 import sys
 import traceback
@@ -11,46 +12,14 @@ class Printer:
         self.model = None
 
     @staticmethod
-    def white(strg):
-        return "\033[89m{}\033[00m".format(strg)
-
-    @staticmethod
-    def grey(strg):
-        return "\033[89m{}\033[00m".format(strg)
-
-    @staticmethod
-    def red(strg):
-        return "\033[91m{}\033[00m".format(strg)
-
-    @staticmethod
-    def green(strg):
-        return "\033[92m{}\033[00m".format(strg)
-
-    @staticmethod
-    def yellow(strg):
-        return "\033[93m{}\033[00m".format(strg)
-
-    @staticmethod
-    def blue(strg):
-        return "\033[94m{}\033[00m".format(strg)
-
-    @staticmethod
-    def purple(strg):
-        return "\033[95m{}\033[00m".format(strg)
-
-    @staticmethod
-    def cyan(strg):
-        return "\033[96m{}\033[00m".format(strg)
-
-    @staticmethod
-    def light_gray(strg):
-        return "\033[97m{}\033[00m".format(strg)
-
-    @staticmethod
     def error_info(code, info):
 
         filename = ""
         exception = ""
+
+        if code == "MAIN_CMD_ITEM_NOT_EXIST":
+            filename = "__main__.py"
+            exception = "L'item '" + info + "' sélectionné n'existe pas."
 
         if code == "MAIN_FLD_WIN_NONE":
             filename = "__main__.py"
@@ -168,21 +137,25 @@ class Printer:
 
     def resolve(self, code, exception):
 
+        if code == "MAIN_CMD_ITEM_NOT_EXIST":
+            print("[purple4]Info[/]:  La liste des items est disponible via la commande suivant:")
+            print("[purple4]Retry[/]: python -m archgui --list-items\n")
+
         if code in ["MAIN_FLD_WIN_NONE", "MAIN_FLD_EVENT_NONE",
                     "MAIN_FLD_WIN_NOT_FOUND", "MAIN_FLD_EVENT_NOT_FOUND"]:
 
-            print(self.purple("Info") + ": Les arguments suivant doivent être passé:")
+            print("[purple4]Info[/]:  Les arguments suivant doivent être passé:")
             print("      - windows")
             print("      - events")
             print("      - config\n")
-            print(self.purple("Retry") + ": python -m archgui "
-                                         "windows=YOUR_WINDOWS_FOLDER "
-                                         "events=YOUR_EVENTS_FOLDER "
-                                         "config=YOUR_CONFIG.JSON\n")
+            print("[purple4]Retry[/]: python -m archgui "
+                  "windows=YOUR_WINDOWS_FOLDER "
+                  "events=YOUR_EVENTS_FOLDER "
+                  "config=YOUR_CONFIG.JSON\n")
 
         if code in ["WINDOWS_SHOW", "WINDOWS_UPDATE", "WINDOWS_CLOSE"]:
-            print(self.purple("Info") + ": Vous tentez probablement d'accéder à une fenêtre")
-            print("      ou à un model de fenêtre qui n'existe pas.\n")
+            print("[purple4]Info[/]:  Vous tentez probablement d'accéder à une fenêtre")
+            print("       ou à un model de fenêtre qui n'existe pas.\n")
 
     def error(self, fnc, code, info=None, tb=True):
 
@@ -195,18 +168,16 @@ class Printer:
             exception = formatted_lines[-1]
             script = formatted_lines[2].lstrip()
 
-            print("\n" + self.red("Error") + ": In file " + self.blue(filename) + " line " +
-                  self.blue(str(exc_tb.tb_lineno)))
-
-            print(self.yellow("       Exception") + ": " + exception)
-            print(self.yellow("        Function") + ": " + fnc)
-            print(self.yellow("          Script") + ": " + script + "\n")
+            print("\n[bright_red]Error[/]: In file [bright_blue]" + filename + "[/] line " + "[bright_blue]" + str(exc_tb.tb_lineno) + "[/]")
+            print("[bright_yellow]       Exception[/]: " + exception)
+            print("[bright_yellow]        Function[/]: [dim white]" + fnc + "[/]")
+            print("[bright_yellow]          Script[/]: " + script + "\n")
             self.resolve(code, exception)
 
         else:
 
             filename, exception = self.error_info(code, info)
-            print("\n" + self.red("Error") + ": In file " + self.blue(filename))
-            print(self.yellow("       Exception") + ": " + exception)
-            print(self.yellow("        Function") + ": " + fnc + "\n")
+            print("\n[bright_red]Error[/]: In file [bright_blue]" + filename + "[/]")
+            print("[bright_yellow]       Exception[/]: " + exception)
+            print("[bright_yellow]        Function[/]: [dim white]" + fnc + "[/]\n")
             self.resolve(code, exception)

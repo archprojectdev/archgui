@@ -28,29 +28,69 @@ class Interpreter:
         # -----------------------------------------------------------------
 
         self.config["parameters"] = {
-            "t": "type",
-            "v": None,
-            "k": "key",
-            "p": "pad",
-            "s": "size",
-            "d": "disabled",
-            "o": "orientation",
-            "f": "font",
-            "g": "group",
-            "df": "default",
-            "dv": "default_value",
-            "tl": "tab_location",
-            "ro": "readonly",
-            "av": "vertical_alignment",
-            "ae": "element_justification",
-            "tg": "target",
-            "sc": "scrollable",
-            "scvo": "vertical_scroll_only",
-            "ns": "no_scrollbar",
-            "xx": "expand_x",
-            "xy": "expand_y",
-            "tw": "truncate_height",
-            "th": "truncate_width"
+            "t": ["type", "'str'"],
+            "v": ["value", "'str'"],
+            "k": ["key", "'str'"],
+            "p": ["pad", (("int", "int"), ("int", "int"))],
+            "s": ["size", ("int", "int")],
+            "d": ["disabled", "'bool'"],
+            "f": ["font", ("str", "int")],
+            "g": ["group", "'str'"],
+            "df": ["default", "'bool'"],
+            "dv": ["default_value", "'str'"],
+            "tl": ["tab_location", ["top", "topleft", "topright", "left", "lefttop", "leftbottom", "right", "righttop", "rightbottom", "bottom", "bottomleft", "bottomright"]],
+            "ro": ["readonly", "'bool'"],
+            "av": ["vertical_alignment", ["top", "center", "bottom"]],
+            "ae": ["element_justification", ["left", "center", "right"]],
+            "tg": ["target", "'str'"],
+            "sc": ["scrollable", "'bool'"],
+            "scvo": ["vertical_scroll_only", "'bool'"],
+            "ns": ["no_scrollbar", "'bool'"],
+            "xx": ["expand_x", "'bool'"],
+            "xy": ["expand_y", "'bool'"],
+            "tw": ["truncate_height", "'bool'"],
+            "th": ["truncate_width", "'bool'"]
+        }
+
+        # -----------------------------------------------------------------
+
+        self.config["items"] = {
+            "column": ["k", "p", "s", "sc", "scvo", "av", "ae", "xx", "xy"],
+            "tab_group": ["k", "p", "s", "f", "tl", "xx", "xy"],
+            "tab": ["k", "p", "d", "ae", "xx", "xy"],
+            "frame": ["k", "p", "s", "av", "ae", "f", "xx", "xy"],
+            "canvas": ["k", "p", "s", "f", "xx", "xy"],
+            "label": ["k", "p", "s", "f", "xx", "xy", "v"],
+            "progress_bar": ["k", "p", "s", "xx", "xy", "v"],
+            "in_line": ["k", "p", "s", "ro", "f", "xx", "xy", "v"],
+            "in_lines": ["k", "p", "s", "f", "d", "ns", "xx", "xy", "v"],
+            "in_radio": ["k", "p", "s", "ro", "f", "xx", "xy", "v", "g"],
+            "in_checkbox": ["k", "p", "d", "s", "xx", "xy", "v"],
+            "in_combo": ["k", "p", "d", "s", "xx", "xy", "dv", "v"],
+            "button": ["k", "p", "s", "d", "f", "v"],
+            "button_file": ["k", "tg", "p", "s", "d", "f", "v"],
+            "button_files": ["k", "tg", "p", "s", "d", "f", "v"],
+            "button_save": ["k", "tg", "p", "s", "d", "f", "v"],
+            "button_folder": ["k", "tg", "p", "s", "d", "f", "v"],
+            "button_calendar": ["k", "tg", "p", "s", "d", "f", "v"],
+            "button_color": ["k", "tg", "p", "s", "d", "f", "v"],
+        }
+
+        # -----------------------------------------------------------------
+
+        self.config["trigger_items"] = {
+            "in_line": self.config["items"]["in_line"],
+            "in_lines": self.config["items"]["in_lines"],
+            "in_radio": self.config["items"]["in_radio"],
+            "in_checkbox": self.config["items"]["in_checkbox"],
+            "in_combo": self.config["items"]["in_combo"],
+            "button": self.config["items"]["button"],
+            "button_file": self.config["items"]["button_file"],
+            "button_files": self.config["items"]["button_files"],
+            "button_save": self.config["items"]["button_save"],
+            "button_folder": self.config["items"]["button_folder"],
+            "button_calendar": self.config["items"]["button_calendar"],
+            "button_color": self.config["items"]["button_color"]
         }
 
     # ---------------------------------------------------------------------
@@ -89,26 +129,18 @@ class Interpreter:
         return layout, items_list
 
     # ---------------------------------------------------------------------
-    # / Créé les items pour le layout
+    # / Liste des items
     # ---------------------------------------------------------------------
 
-    @staticmethod
-    def trigger_items():
-        trigger_items = {
-            "in_line": [],
-            "in_lines": [],
-            "in_radio": [],
-            "in_checkbox": [],
-            "in_combo": [],
-            "button": [],
-            "button_file": [],
-            "button_files": [],
-            "button_save": [],
-            "button_folder": [],
-            "button_calendar": [],
-            "button_color": []
-        }
-        return trigger_items
+    def items(self):
+        return self.config["items"]
+
+    # ---------------------------------------------------------------------
+    # / Liste des items pouvant etre trigger dans un event
+    # ---------------------------------------------------------------------
+
+    def trigger_items(self):
+        return self.config["trigger_items"]
 
     # ---------------------------------------------------------------------
     # / Créé les items pour le layout
@@ -349,6 +381,27 @@ class Interpreter:
 
         return new_item, items_list
 
+    def add_progress_bar(self, item, items_list):
+
+        items_list = items_list
+        parameters = self.create_parameters(item)
+
+        if "t" in parameters:
+            items_list[parameters["k"]] = {
+                "type": parameters["t"]
+            }
+
+        new_item = self.fsg.ProgressBar(
+            parameters["v"],
+            key=parameters["k"],
+            pad=parameters["p"],
+            size=parameters["s"],
+            expand_x=parameters["xx"],
+            expand_y=parameters["xy"]
+        )
+
+        return new_item, items_list
+
     def add_in_line(self, item, items_list):
 
         items_list = items_list
@@ -415,7 +468,8 @@ class Interpreter:
             pad=parameters["p"],
             size=parameters["s"],
             expand_x=parameters["xx"],
-            expand_y=parameters["xy"]
+            expand_y=parameters["xy"],
+            group_id=parameters["g"]
         )
 
         return new_item, items_list
@@ -454,13 +508,13 @@ class Interpreter:
 
         new_item = self.fsg.Combo(
             parameters["v"],
-            default_value=parameters["dv"],
             key=parameters["k"],
             pad=parameters["p"],
             disabled=parameters["d"],
             size=parameters["s"],
             expand_x=parameters["xx"],
-            expand_y=parameters["xy"]
+            expand_y=parameters["xy"],
+            default_value=parameters["dv"]
         )
 
         return new_item, items_list
@@ -497,13 +551,13 @@ class Interpreter:
             }
 
         new_item = self.fsg.FileBrowse(
-            button_text=parameters["v"],
-            target=parameters["tg"],
             key=parameters["k"],
+            target=parameters["tg"],
             pad=parameters["p"],
             size=parameters["s"],
             disabled=parameters["d"],
             font=parameters["f"],
+            button_text=parameters["v"],
         )
 
         return new_item, items_list
@@ -519,13 +573,13 @@ class Interpreter:
             }
 
         new_item = self.fsg.FilesBrowse(
-            button_text=parameters["v"],
-            target=parameters["tg"],
             key=parameters["k"],
+            target=parameters["tg"],
             pad=parameters["p"],
             size=parameters["s"],
             disabled=parameters["d"],
-            font=parameters["f"]
+            font=parameters["f"],
+            button_text=parameters["v"],
         )
 
         return new_item, items_list
@@ -541,13 +595,13 @@ class Interpreter:
             }
 
         new_item = self.fsg.FileSaveAs(
-            button_text=parameters["v"],
-            target=parameters["tg"],
             key=parameters["k"],
+            target=parameters["tg"],
             pad=parameters["p"],
             size=parameters["s"],
             disabled=parameters["d"],
-            font=parameters["f"]
+            font=parameters["f"],
+            button_text=parameters["v"],
         )
 
         return new_item, items_list
@@ -563,13 +617,13 @@ class Interpreter:
             }
 
         new_item = self.fsg.FolderBrowse(
-            button_text=parameters["v"],
-            target=parameters["tg"],
             key=parameters["k"],
+            target=parameters["tg"],
             pad=parameters["p"],
             size=parameters["s"],
             disabled=parameters["d"],
-            font=parameters["f"]
+            font=parameters["f"],
+            button_text=parameters["v"],
         )
 
         return new_item, items_list
@@ -585,13 +639,13 @@ class Interpreter:
             }
 
         new_item = self.fsg.CalendarButton(
-            button_text=parameters["v"],
-            target=parameters["tg"],
             key=parameters["k"],
+            target=parameters["tg"],
             pad=parameters["p"],
             size=parameters["s"],
             disabled=parameters["d"],
-            font=parameters["f"]
+            font=parameters["f"],
+            button_text=parameters["v"],
         )
 
         return new_item, items_list
@@ -607,34 +661,13 @@ class Interpreter:
             }
 
         new_item = self.fsg.ColorChooserButton(
-            button_text=parameters["v"],
-            target=parameters["tg"],
             key=parameters["k"],
+            target=parameters["tg"],
             pad=parameters["p"],
             size=parameters["s"],
             disabled=parameters["d"],
-            font=parameters["f"]
-        )
-
-        return new_item, items_list
-
-    def add_progress_bar(self, item, items_list):
-
-        items_list = items_list
-        parameters = self.create_parameters(item)
-
-        if "t" in parameters:
-            items_list[parameters["k"]] = {
-                "type": parameters["t"]
-            }
-
-        new_item = self.fsg.ProgressBar(
-            parameters["v"],
-            key=parameters["k"],
-            pad=parameters["p"],
-            size=parameters["s"],
-            expand_x=parameters["xx"],
-            expand_y=parameters["xy"]
+            font=parameters["f"],
+            button_text=parameters["v"],
         )
 
         return new_item, items_list

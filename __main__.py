@@ -1,9 +1,41 @@
+from rich import print
+
+
+def print_in(lbl: str, length: int, pos: str):
+
+    label_length = len(lbl)
+
+    if length - label_length > 0:
+
+        if pos == "left":
+
+            ret = lbl
+            for _ in range(length - label_length):
+                ret += " "
+
+        elif pos == "right":
+
+            ret = ""
+            for _ in range(length - label_length):
+                ret += " "
+            ret += lbl
+
+        else:
+            print("ok1")
+            sys.exit(0)
+
+    else:
+        print("ok2")
+        sys.exit(0)
+
+    return ret
+
+
 if __name__ == "__main__":
 
     import os
     import sys
     import json
-    import shutil
 
     import FreeSimpleGUI as fsg
 
@@ -24,313 +56,303 @@ if __name__ == "__main__":
         interpreter = Interpreter(fsg, config, None)
     except:
         printer.error("__main__", "MAIN_CFG_DEFAULT")
-
-    user_folder_windows = None
-    user_folder_events = None
-    user_file_config = None
+        sys.exit(0)
 
     # ---------------------------------------------------------------------
-    # / Création des Events
+    # / Chargement des arguments
     # ---------------------------------------------------------------------
 
-    def create_events(lvl, model, user=False):
-
-        global interpreter
-
-        if user:
-
-            global user_folder_windows
-            global user_folder_events
-            global user_file_config
-
-            windows_folder = user_folder_windows + "/"
-            events_folder = user_folder_events + "/"
-
-        else:
-
-            windows_folder = "archgui/windows/" + lvl + "/"
-            events_folder = "archgui/events/" + lvl + "/"
-
-        specter = None
-
-        try:
-            specter = json.load(open(windows_folder + model + ".json"))
-        except:
-            printer.error("__main__", "MAIN_CE_MODEL_WIN")
-
-        items = specter["items"]
-        layout, items_list = interpreter.create_layout(items)
-
-        ce_inner = "class Events:\n\n"
-
-        ce_inner += "    def __init__(self):\n\n"
-
-        ce_inner += "        self.windows = None\n"
-        ce_inner += "        self.window = None\n\n"
-
-        ce_inner += "    def events(self, event, modules):\n\n"
-
-        ce_inner += "        if self.windows.uniqid is None:\n"
-        ce_inner += "            self.windows.uniqid = None\n\n"
-
-        for item in items_list:
-            if items_list[item] in list(interpreter.trigger_items()):
-                ce_inner += "        if event == \"" + item + "\":\n"
-                ce_inner += "            print(self.lvl + \" / \" + self.model + \" / \" + self.wid + \" : \" + \"" + item + "\")\n\n"
-
-        try:
-            with open(events_folder + model + ".py", "a") as ev_file:
-                ev_file.write(ce_inner)
-        except:
-            printer.error("__main__", "MAIN_CE_MODEL_EVENT")
-
-    # ---------------------------------------------------------------------
-    # / Chargement des fichiers utilisateurs
-    # ---------------------------------------------------------------------
+    cmd = "regular"
+    args = None
 
     for arg in sys.argv:
 
-        split_windows = arg.split("windows=")
-        split_events = arg.split("events=")
-        split_config = arg.split("config=")
+        split_cmd_items = arg.split("--list-items")
+        split_cmd_item = arg.split("--item=")
 
-        if len(split_windows) > 1:
-            user_folder_windows = split_windows[1]
+        if len(split_cmd_items) == 2:
+            if split_cmd_items[0] == "" and split_cmd_items[1] == "":
+                cmd = "list-items"
 
-        if len(split_events) > 1:
-            user_folder_events = split_events[1]
-
-        if len(split_config) > 1:
-            user_file_config = split_config[1]
-
-    user_folder_windows_check = False
-    user_folder_events_check = False
-
-    if user_folder_windows is None:
-        printer.error("__main__", "MAIN_FLD_WIN_NONE",
-                      tb=False)
-
-    if user_folder_events is None:
-        printer.error("__main__", "MAIN_FLD_EVENT_NONE",
-                      tb=False)
-
-    if not os.path.isdir(user_folder_windows):
-        printer.error("__main__", "MAIN_FLD_WIN_NOT_FOUND",
-                      info=user_folder_windows,
-                      tb=False)
-
-    if not os.path.isdir(user_folder_events):
-        printer.error("__main__", "MAIN_FLD_EVENT_NOT_FOUND",
-                      info=user_folder_events,
-                      tb=False)
-
-    if user_file_config is not None:
-        if user_file_config.endswith(".json"):
-
-            if not os.path.isfile(user_file_config):
-                shutil.copyfile("archgui/config/default.json", user_file_config)
-
+        elif len(split_cmd_item) > 1:
+            if split_cmd_item[0] == "" and split_cmd_item[1] in list(interpreter.items()):
+                cmd = "items"
+                args = {
+                    "item": split_cmd_item[1]
+                }
             else:
-                try:
-                    shutil.copyfile(user_file_config, "archgui/config/user.json")
-                    config_user = json.load(open("archgui/config/user.json"))
-                except:
-                    printer.error("__main__", "MAIN_CFG_DEFAULT")
+                printer.error("__main__", "MAIN_CMD_ITEM_NOT_EXIST",
+                              info=split_cmd_item[1],
+                              tb=False)
+                sys.exit(0)
 
         else:
-            printer.error("__main__", "MAIN_FILE_CONFIG_JSON", tb=False)
 
-    # ---------------------------------------------------------------------
-    # / Création des fichiers event manquant
-    # ---------------------------------------------------------------------
+            split_windows = arg.split("windows=")
+            split_events = arg.split("events=")
+            split_config = arg.split("config=")
 
-    user_windows = os.listdir(user_folder_windows)
-    user_windows_name = []
+            args = {
+                "windows": None,
+                "events": None,
+                "config": None
+            }
 
-    try:
-        for window in user_windows:
+            if len(split_windows) > 1:
+                args["windows"] = split_windows[1]
+
+            if len(split_events) > 1:
+                args["events"] = split_events[1]
+
+            if len(split_config) > 1:
+                args["config"] = split_config[1]
+
+    if cmd == "regular":
+
+        # -----------------------------------------------------------------
+        # / Création des Events
+        # -----------------------------------------------------------------
+
+        def create_events(model):
+
+            global interpreter
+            global args
+
+            windows_folder = args["windows"] + "/"
+            events_folder = args["events"] + "/"
+
+            specter = None
+
+            try:
+                specter = json.load(open(windows_folder + model + ".json"))
+            except:
+                printer.error("__main__", "MAIN_CE_MODEL_WIN")
+
+            items = specter["items"]
+            layout, items_list = interpreter.create_layout(items)
+
+            ce_inner = "class Events:\n\n"
+
+            ce_inner += "    def __init__(self):\n\n"
+
+            ce_inner += "        self.windows = None\n"
+            ce_inner += "        self.window = None\n\n"
+
+            ce_inner += "    def events(self, event, modules):\n\n"
+
+            ce_inner += "        if self.windows.uniqid is None:\n"
+            ce_inner += "            self.windows.uniqid = None\n\n"
+
+            for itm in items_list:
+                if items_list[itm] in list(interpreter.trigger_items()):
+                    ce_inner += "        if event == \"" + itm + "\":\n"
+                    ce_inner += "            print(self.model + \" / \" + self.wid + \" : \" + \"" + itm + "\")\n\n"
+
+            try:
+                with open(events_folder + model + ".py", "a") as ev_file:
+                    ev_file.write(ce_inner)
+            except:
+                printer.error("__main__", "MAIN_CE_MODEL_EVENT")
+
+        # -----------------------------------------------------------------
+
+        if args["windows"] is None:
+            printer.error("__main__", "MAIN_FLD_WIN_NONE",
+                          tb=False)
+            sys.exit(0)
+
+        if args["events"] is None:
+            printer.error("__main__", "MAIN_FLD_EVENT_NONE",
+                          tb=False)
+            sys.exit(0)
+
+        if not os.path.isdir(args["windows"]):
+            printer.error("__main__", "MAIN_FLD_WIN_NOT_FOUND",
+                          info=args["windows"],
+                          tb=False)
+            sys.exit(0)
+
+        if not os.path.isdir(args["events"]):
+            printer.error("__main__", "MAIN_FLD_EVENT_NOT_FOUND",
+                          info=args["events"],
+                          tb=False)
+            sys.exit(0)
+
+        # -----------------------------------------------------------------
+
+        if args["config"] is not None:
+            if args["config"].endswith(".json"):
+                config_user = json.load(open(args["config"]))
+            else:
+                printer.error("__main__", "MAIN_FILE_CONFIG_JSON", tb=False)
+                sys.exit(0)
+
+        # -----------------------------------------------------------------
+        # / Création des fichiers event manquant
+        # -----------------------------------------------------------------
+
+        windows = os.listdir(args["windows"])
+        windows_name = []
+
+        try:
+            for window in windows:
+                if window.endswith(".json"):
+                    name = window.replace(".json", "")
+                    windows_name.append(name)
+                    if not os.path.isfile("./" + args["events"] + "/" + name + ".py"):
+                        create_events(name)
+        except:
+            printer.error("__main__", "MAIN_CR_EVENTS_FILES")
+            sys.exit(0)
+
+        # -----------------------------------------------------------------
+        # / Chargement des parties du Loader
+        # -----------------------------------------------------------------
+
+        windows = os.listdir(args["windows"])
+        events = os.listdir(args["events"])
+
+        # -----------------------------------------------------------------
+
+        inner = "import archgui as ag\n\n"
+
+        for window in windows:
             if window.endswith(".json"):
                 name = window.replace(".json", "")
-                user_windows_name.append(name)
-                if not os.path.isfile("./" + user_folder_events + "/" + name + ".py"):
-                    create_events("usr", name, True)
-    except:
-        printer.error("__main__", "MAIN_CR_EVENTS_FILES")
+                if name + ".py" not in events:
+                    create_events(name)
+                inner += "from " + args["events"].replace("/", "_") + "." + name + " import Events as " + name + "_events\n"
 
-    # ---------------------------------------------------------------------
-    # / Copie des fichiers utilisateurs vers le module
-    # ---------------------------------------------------------------------
+        # -----------------------------------------------------------------
 
-    try:
-        for window in user_windows:
+        inner += "\nconfig = " + str(config) + "\n"
+        inner += "config_user = " + str(config_user) + "\n\n"
+
+        # -----------------------------------------------------------------
+
+        inner += "specters = {" + "\n"
+
+        try:
+            for window in windows:
+                if window.endswith(".json"):
+                    name = window.replace(".json", "")
+                    window = json.load(open(args["windows"] + "/" + window))
+                    inner += "    \"" + name + "\": " + str(window) + ",\n"
+        except:
+            printer.error("__main__", "MAIN_READ_WIN_SYS")
+            sys.exit(0)
+
+        inner += "}" + "\n\n\n"
+
+        # -----------------------------------------------------------------
+
+        inner += "def archgui():\n\n"
+
+        inner += "    for parameter in config:\n"
+        inner += "        if parameter in list(config_user):\n"
+        inner += "            for sub_parameter in config[parameter]:\n"
+        inner += "                if sub_parameter in list(config_user[parameter]):\n"
+        inner += "                    if config[parameter][sub_parameter] != config_user[parameter][sub_parameter]:\n"
+        inner += "                        config[parameter][sub_parameter] = config_user[parameter][sub_parameter]\n"
+
+        # -----------------------------------------------------------------
+
+        inner += "\n    # ---------------------------------------------------------------------\n\n"
+        inner += "    models_event = {\n"
+
+        for window in windows:
             if window.endswith(".json"):
                 name = window.replace(".json", "")
-                shutil.copyfile(user_folder_windows + "/" + name + ".json", "archgui/windows/usr/" + name + ".json")
-                shutil.copyfile(user_folder_events + "/" + name + ".py", "archgui/events/usr/" + name + ".py")
-    except:
-        printer.error("__main__", "MAIN_CP_USER_FILES")
+                event = "eval(\"" + name + "_events\")(),"
+                inner += "        \"" + name + "\": " + event + " \n"
 
-    # ---------------------------------------------------------------------
-    # / Suppression des fichiers utilisateurs résiduels
-    # ---------------------------------------------------------------------
+        inner += "    }\n"
 
-    try:
-        for window in os.listdir("archgui/windows/usr/"):
-            if not window.endswith(".json"):
-                if os.path.isfile("archgui/windows/usr/" + window):
-                    os.remove("archgui/windows/usr/" + window)
-            else:
-                if window.replace(".json", "") not in user_windows_name:
-                    if os.path.isfile("archgui/windows/usr/" + window):
-                        os.remove("archgui/windows/usr/" + window)
+        # -----------------------------------------------------------------
 
-        for window in os.listdir("archgui/events/usr/"):
-            if not window.endswith(".py"):
-                if os.path.isfile("archgui/events/usr/" + window):
-                    os.remove("archgui/events/usr/" + window)
-            else:
-                if window.replace(".py", "") not in user_windows_name:
-                    if os.path.isfile("archgui/events/usr/" + window):
-                        os.remove("archgui/events/usr/" + window)
-    except:
-        printer.error("__main__", "MAIN_DEL_FILES")
+        inner += "\n    # ---------------------------------------------------------------------\n"
+        inner += "\n    ag.init(config, specters, models_event)\n"
+        inner += "\n    return ag\n"
 
-    # ---------------------------------------------------------------------
-    # / Chargement des parties du Loader
-    # ---------------------------------------------------------------------
+        # -----------------------------------------------------------------
+        # / Réécriture de Loader
+        # -----------------------------------------------------------------
 
-    try:
-        with open("archgui/Loader.py", "r") as file:
-            data = file.read()
-    except:
-        printer.error("__main__", "MAIN_READ_LOADER")
+        try:
+            with open("ag_loader.py", "w") as file:
+                file.write(inner)
+        except:
+            printer.error("__main__", "MAIN_REWRITE_LOADER")
+            sys.exit(0)
 
-    events_start = "# - LOADING EVENTS ZONE START"
-    events_end = "# - LOADING EVENTS ZONE END"
-    events_before = data.split(events_start)[0]
-    events_after = data.split(events_end)[1]
+    else:
 
-    windows_start = "# - LOADING WINDOWS ZONE START"
-    windows_end = "# - LOADING WINDOWS ZONE END"
-    windows_before = events_after.split(windows_start)[0]
-    windows_after = events_after.split(windows_end)[1]
+        if cmd == "list-items":
 
-    config_start = "# - LOADING CONFIG ZONE START"
-    config_end = "# - LOADING CONFIG ZONE END"
-    config_before = windows_after.split(config_start)[0]
-    config_after = windows_after.split(config_end)[1]
+            print()
+            print("    Liste des items:")
+            print()
 
-    models_start = "        # - LOADING MODELS LIST ZONE START"
-    models_end = "        # - LOADING MODELS LIST ZONE END"
-    models_list_before = config_after.split(models_start)[0]
-    models_list_after = config_after.split(models_end)[1]
+            for item in interpreter.items():
+                if item in list(interpreter.trigger_items()):
+                    label = print_in("- ", 8, "right") + "[bright_red]" + print_in(item, 18, "left") + "[/]"
+                    label += "->   "
+                    label += "[blue]trigger[/]"
+                    print(label)
+                else:
+                    print(print_in("- ", 8, "right") + "[bright_red]" + item + "[/]")
 
-    # ---------------------------------------------------------------------
+            print()
 
-    windows_sys = os.listdir("archgui/windows/sys")
-    windows_usr = os.listdir("archgui/windows/usr")
+        elif cmd == "items":
 
-    events_sys = os.listdir("archgui/events/sys")
-    events_usr = os.listdir("archgui/events/usr")
+            print()
+            print("    Items: [bright_blue]" + args["item"] + "[/]")
+            print()
 
-    # ---------------------------------------------------------------------
+            parameters = interpreter.config["parameters"]
+            item = interpreter.config["items"][args["item"]]
 
-    inner = events_before
-    inner += events_start + "\n"
+            for parameter in item:
+                label = print_in("- ", 8, "right")
+                label += "[bright_red]" + print_in(parameter, 8, "left") + "[/]"
+                label += " ->   "
+                label += "[bright_red]" + print_in(parameters[parameter][0], 24, "left") + "[/]"
 
-    for window_sys in windows_sys:
-        if window_sys.endswith(".json"):
-            name = window_sys.replace(".json", "")
-            if name + ".py" not in events_sys:
-                create_events("sys", name)
-            inner += "from archgui.events.sys." + name + " import Events as sys_" + name + "_events\n"
+                if type(parameters[parameter][1]) == list:
+                    if len(parameters[parameter][1]) > 3:
 
-    for window_usr in windows_usr:
-        if window_usr.endswith(".json"):
-            name = window_usr.replace(".json", "")
-            if name + ".py" not in events_usr:
-                create_events("usr", name)
-            inner += "from archgui.events.usr." + name + " import Events as usr_" + name + "_events\n"
+                        label += " ->   "
+                        ctr = 0
+                        nbr = 0
 
-    inner += events_end
+                        for p in parameters[parameter][1]:
 
-    # ---------------------------------------------------------------------
+                            label += print_in("'" + p + "'", 14, "left")
+                            ctr += 1
+                            nbr += 1
 
-    inner += windows_before
-    inner += windows_start + "\n"
+                            if nbr > 2:
+                                if ctr < len(parameters[parameter][1]):
+                                    label += "\n"
+                                    label += print_in("", 52, "left")
+                                nbr = 0
 
-    inner += "specters = {" + "\n"
-    inner += "    \"sys\": {" + "\n"
+                    else:
 
-    try:
-        for window_sys in windows_sys:
-            if window_sys.endswith(".json"):
-                name = window_sys.replace(".json", "")
-                window = json.load(open("archgui/windows/sys/" + window_sys))
-                inner += "        \"" + name + "\": " + str(window) + ",\n"
-    except:
-        printer.error("__main__", "MAIN_READ_WIN_SYS")
+                        label += " ->   "
+                        first = True
+                        for p in parameters[parameter][1]:
+                            if not first:
+                                label += ", "
+                            label += "'" + p + "'"
+                            first = False
 
-    inner += "    }," + "\n"
-    inner += "    \"usr\": {" + "\n"
+                else:
+                    label += " ->   " + str(parameters[parameter][1])
 
-    try:
-        for window_usr in windows_usr:
-            if window_usr.endswith(".json"):
-                name = window_usr.replace(".json", "")
-                window = json.load(open("archgui/windows/usr/" + window_usr))
-                inner += "        \"" + name + "\": " + str(window) + ",\n"
-    except:
-        printer.error("__main__", "MAIN_READ_WIN_USR")
+                print(label)
 
-    inner += "    }," + "\n"
-    inner += "}" + "\n"
+            print()
 
-    inner += windows_end
 
-    # ---------------------------------------------------------------------
-
-    inner += config_before
-    inner += config_start + "\n"
-
-    inner += "config = " + str(config) + "\n"
-    inner += "config_user = " + str(config_user) + "\n"
-
-    inner += config_end
-
-    # ---------------------------------------------------------------------
-
-    inner += models_list_before
-    inner += models_start + "\n"
-
-    inner += "        self.models_list = {\n"
-    inner += "            \"sys\": [\n"
-
-    for window_sys in windows_sys:
-        if window_sys.endswith(".json"):
-            name = window_sys.replace(".json", "")
-            inner += "                \"" + name + "\",\n"
-
-    inner += "            ],\n"
-    inner += "            \"usr\": [\n"
-
-    for window_usr in windows_usr:
-        if window_usr.endswith(".json"):
-            name = window_usr.replace(".json", "")
-            inner += "                \"" + name + "\",\n"
-
-    inner += "            ]\n"
-    inner += "        }\n"
-
-    inner += models_end
-    inner += models_list_after
-
-    # ---------------------------------------------------------------------
-    # / Réécriture de Loader
-    # ---------------------------------------------------------------------
-
-    try:
-        with open("archgui/Loader.py", "w") as file:
-            file.write(inner)
-    except:
-        printer.error("__main__", "MAIN_REWRITE_LOADER")
