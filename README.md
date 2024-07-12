@@ -16,9 +16,6 @@ une développée avec la surcouche `Archgui`.
 Ce n’est pour le moment qu’une demonstration incomplète. 
 Si vous souhaitez tester ce module, il est préférable de le faire dans un environnement dédié. 
 
-<br/>
-
----
 
 ## 😊 Fonctionnalités principales :
 - Dimensionnement et positionnement simplifié des fenêtres.
@@ -29,17 +26,11 @@ Si vous souhaitez tester ce module, il est préférable de le faire dans un envi
 - Update simple des éléments d’une fenêtre.
 - Supporte le multithreading.
 
-<br/>
-
----
 
 ## 💻 Fonctionne sous les OS :
 - Ubuntu 24.04 
 - Windows 11 (en cours de test)
 
-<br/>
-
----
 
 ## 🛠️ Nécessite :
 - Anaconda
@@ -80,9 +71,6 @@ pip install freesimplegui
 ```
 La différence d’installation se fait entre le module `screeninfo` pour Ubuntu et `pywin32` pour Windows.
 
-<br/>
-
----
 
 ## 🛠️ Utilisation :
 
