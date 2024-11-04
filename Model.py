@@ -1,6 +1,12 @@
-import re
+"""
+Model.py
+"""
 
-from archgui.Printer import Printer
+import re
+import logging
+
+from io import BytesIO
+
 from archgui.Interpreter import Interpreter
 
 
@@ -10,6 +16,10 @@ from archgui.Interpreter import Interpreter
 
 
 def list_to_tuple(ll):
+    """
+    :param ll:
+    :return:
+    """
     return tuple(list_to_tuple(x) for x in ll) if type(ll) is list else ll
 
 
@@ -20,7 +30,10 @@ def list_to_tuple(ll):
 
 
 def pisnt_null(parameters):
-
+    """
+    :param parameters:
+    :return:
+    """
     not_null = True
     if parameters["uniqid"] is None:
         not_null = False
@@ -44,7 +57,9 @@ def pisnt_null(parameters):
 
 
 class Model:
-
+    """
+    Class Model
+    """
     def __init__(self, windows, model, specter):
 
         # -----------------------------------------------------------------
@@ -60,8 +75,13 @@ class Model:
         # -----------------------------------------------------------------
 
         self.model = model
-        self.wid = None
+        self.monitor = None
+        self.id = None
         self.uniqid = None
+
+        # -----------------------------------------------------------------
+
+        self.wageo = None
 
         # -----------------------------------------------------------------
 
@@ -73,12 +93,12 @@ class Model:
 
         # -----------------------------------------------------------------
 
-        self.printer = Printer()
         self.interpreter = Interpreter(self.fsg, self.windows.config, self.window)
 
         # -----------------------------------------------------------------
 
         self.parameters = {
+                "full-screen": False,
                 "location_x": None,
                 "location_y": None,
                 "width": None,
@@ -157,11 +177,13 @@ class Model:
     # ---------------------------------------------------------------------
 
     def set_location_x(self):
-
+        """
+        :return:
+        """
         if pisnt_null(self.parameters["location_x_relative"]):
 
             if not isinstance(self.window_location[0], int):
-                self.window_location[0] = self.windows.wageo["x_min"]
+                self.window_location[0] = self.wageo["x_min"]
 
             try:
                 rel = self.parameters["location_x_relative"]
@@ -171,8 +193,8 @@ class Model:
                 else:
                     size = self.windows.wds_windows[rel["model"]][rel["wid"]].get_size()
                     location = self.windows.wds_windows[rel["model"]][rel["wid"]].get_location()
-            except:
-                self.printer.error("set_location_x()", "MODEL_SET_LOCATION_X")
+            except Exception as e:
+                logging.exception(e)
                 return False
 
             self.window_location[0] += size[0] + location[0]
@@ -185,22 +207,22 @@ class Model:
                     location = self.windows.wds_uniqid[rel["uniqid"]].get_location()
                 else:
                     location = self.windows.wds_windows[rel["model"]][rel["wid"]].get_location()
-            except:
-                self.printer.error("set_location_x()", "MODEL_SET_LOCATION_X")
+            except Exception as e:
+                logging.exception(e)
                 return False
 
             self.window_location[0] = location[0]
 
         elif self.parameters["location_x"] == 0 or self.parameters["location_x"] is None:
-            self.window_location[0] = self.windows.wageo["x_min"]
+            self.window_location[0] = self.wageo["x_min"]
 
         elif isinstance(self.parameters["location_x"], int):
-            self.window_location[0] = self.windows.wageo["x_min"] + self.parameters["location_x"]
+            self.window_location[0] = self.wageo["x_min"] + self.parameters["location_x"]
 
         elif self.reperc.match(str(self.parameters["location_x"])) and isinstance(self.parameters["width"], int):
             percent = int(self.parameters["location_x"].split("%")[0])
-            self.window_location[0] = self.windows.wageo["x_min"]
-            self.window_location[0] += int((self.windows.wageo["width"] / 100) * percent)
+            self.window_location[0] = self.wageo["x_min"]
+            self.window_location[0] += int((self.wageo["width"] / 100) * percent)
             self.window_location[0] -= int(self.parameters["width"] / 2)
 
         else:
@@ -213,11 +235,14 @@ class Model:
     # ---------------------------------------------------------------------
 
     def set_location_y(self):
+        """
 
+        :return:
+        """
         if pisnt_null(self.parameters["location_y_relative"]):
 
             if not isinstance(self.window_location[1], int):
-                self.window_location[1] = self.windows.wageo["y_min"]
+                self.window_location[1] = self.wageo["y_min"]
 
             try:
                 rel = self.parameters["location_y_relative"]
@@ -227,12 +252,12 @@ class Model:
                 else:
                     size = self.windows.wds_windows[rel["model"]][rel["wid"]].get_size()
                     location = self.windows.wds_windows[rel["model"]][rel["wid"]].get_location()
-            except:
-                self.printer.error("set_location_y()", "MODEL_SET_LOCATION_Y")
+            except Exception as e:
+                logging.exception(e)
                 return False
 
             self.window_location[1] += size[1] + location[1]
-            self.window_location[1] += self.windows.wageo["titlebar_height"] + 1
+            self.window_location[1] += self.wageo["titlebar_height"] + 1
 
         elif pisnt_null(self.parameters["location_y_equal"]):
 
@@ -242,22 +267,22 @@ class Model:
                     location = self.windows.wds_uniqid[rel["uniqid"]].get_location()
                 else:
                     location = self.windows.wds_windows[rel["model"]][rel["wid"]].get_location()
-            except:
-                self.printer.error("set_location_y()", "MODEL_SET_LOCATION_Y")
+            except Exception as e:
+                logging.exception(e)
                 return False
 
             self.window_location[1] = location[1]
 
         elif self.parameters["location_y"] == 0 or self.parameters["location_y"] is None:
-            self.window_location[1] = self.windows.wageo["y_min"]
+            self.window_location[1] = self.wageo["y_min"]
 
         elif isinstance(self.parameters["location_y"], int):
-            self.window_location[1] = self.windows.wageo["y_min"] + self.parameters["location_y"]
+            self.window_location[1] = self.wageo["y_min"] + self.parameters["location_y"]
 
         elif self.reperc.match(str(self.parameters["location_y"])) and isinstance(self.parameters["height"], int):
             percent = int(self.parameters["location_y"].split("%")[0])
-            self.window_location[1] = self.windows.wageo["y_min"]
-            self.window_location[1] += int((self.windows.wageo["height"] / 100) * percent)
+            self.window_location[1] = self.wageo["y_min"]
+            self.window_location[1] += int((self.wageo["height"] / 100) * percent)
             self.window_location[1] -= int(self.parameters["height"] / 2)
 
         else:
@@ -270,7 +295,10 @@ class Model:
     # ---------------------------------------------------------------------
 
     def set_size_width(self):
+        """
 
+        :return:
+        """
         if pisnt_null(self.parameters["width_equal"]):
 
             try:
@@ -279,8 +307,8 @@ class Model:
                     size = self.windows.wds_uniqid[rel["uniqid"]].get_size()
                 else:
                     size = self.windows.wds_windows[rel["model"]][rel["wid"]].get_size()
-            except:
-                self.printer.error("set_size_width()", "MODEL_SET_SIZE_WIDTH")
+            except Exception as e:
+                logging.exception(e)
                 return False
 
             self.window_size[0] = size[0]
@@ -293,8 +321,8 @@ class Model:
                     size = self.windows.wds_uniqid[rel["uniqid"]].get_location()
                 else:
                     size = self.windows.wds_windows[rel["model"]][rel["wid"]].get_location()
-            except:
-                self.printer.error("set_size_width()", "MODEL_SET_SIZE_WIDTH")
+            except Exception as e:
+                logging.exception(e)
                 return False
 
             self.window_size[0] = size[0]
@@ -302,11 +330,9 @@ class Model:
         elif self.parameters["width"] is None:
             if self.parameters["height"] is None and not pisnt_null(self.parameters["height_equal"]):
                 self.window_size[0] = None
-            else:
-                self.printer.error("set_size_width()", "MODEL_SET_SIZE_DUAL_NONE", tb=False)
 
         elif self.parameters["width"] == 0 or self.parameters["width"] == "100%":
-            self.window_size[0] = self.windows.wageo["width"]
+            self.window_size[0] = self.wageo["width"]
             self.window_size[0] -= self.window_location[0]
 
         elif isinstance(self.parameters["width"], int):
@@ -314,7 +340,7 @@ class Model:
 
         elif self.reperc.match(str(self.parameters["width"])):
             percent = int(self.parameters["width"].split("%")[0])
-            self.window_size[0] = int((self.windows.wageo["width"] / 100) * percent)
+            self.window_size[0] = int((self.wageo["width"] / 100) * percent)
 
         else:
             self.window_size[0] = 0
@@ -329,7 +355,10 @@ class Model:
     # ---------------------------------------------------------------------
 
     def set_size_height(self):
+        """
 
+        :return:
+        """
         if pisnt_null(self.parameters["height_equal"]):
 
             try:
@@ -338,8 +367,8 @@ class Model:
                     size = self.windows.wds_uniqid[rel["uniqid"]].get_size()
                 else:
                     size = self.windows.wds_windows[rel["model"]][rel["wid"]].get_size()
-            except:
-                self.printer.error("set_size_height()", "MODEL_SET_SIZE_HEIGHT")
+            except Exception as e:
+                logging.exception(e)
                 return False
 
             self.window_size[1] = size[1]
@@ -352,29 +381,27 @@ class Model:
                     height_size = self.windows.wds_uniqid[rel["uniqid"]].get_location()
                 else:
                     height_size = self.windows.wds_windows[rel["model"]][rel["wid"]].get_location()
-            except:
-                self.printer.error("set_size_height()", "MODEL_SET_SIZE_HEIGHT")
+            except Exception as e:
+                logging.exception(e)
                 return False
 
-            self.window_size[1] = height_size[1] - (2 * self.windows.wageo["titlebar_height"]) + 4
+            self.window_size[1] = height_size[1] - (2 * self.wageo["titlebar_height"]) + 4
 
         elif self.parameters["height"] is None:
             if self.parameters["width"] is None and not pisnt_null(self.parameters["width_equal"]):
                 self.window_size[1] = None
-            else:
-                self.printer.error("set_size_height()", "MODEL_SET_SIZE_DUAL_NONE", tb=False)
 
         elif self.parameters["height"] == 0 or self.parameters["height"] == "100%":
-            self.window_size[1] = self.windows.wageo["height"]
+            self.window_size[1] = self.wageo["height"]
             self.window_size[1] -= self.window_location[1]
-            self.window_size[1] -= 6
+            self.window_size[1] -= 5
 
         elif isinstance(self.parameters["height"], int):
             self.window_size[1] = self.parameters["height"]
 
         elif self.reperc.match(str(self.parameters["height"])):
             percent = int(self.parameters["height"].split("%")[0])
-            self.window_size[1] = (self.windows.wageo["height"] / 100) * percent
+            self.window_size[1] = (self.wageo["height"] / 100) * percent
 
         else:
             self.window_size[1] = 0
@@ -388,10 +415,22 @@ class Model:
     # / Affiche la Window de FreeSimpleGUI
     # ---------------------------------------------------------------------
 
-    def open(self, wid, title, location=None, size=None):
-
-        self.wid = wid
+    def open(self, monitor, id, title, location=None, size=None):
+        """
+        :param monitor:
+        :param id:
+        :param title:
+        :param location:
+        :param size:
+        :return:
+        """
+        self.monitor = monitor
+        self.id = id
         self.title = title
+
+        # -----------------------------------------------------------------
+
+        self.wageo = self.windows.wageo[self.monitor]
 
         # -----------------------------------------------------------------
 
@@ -403,41 +442,51 @@ class Model:
 
         # -----------------------------------------------------------------
 
-        location_loaded = False
-        if location is not None:
-            if isinstance(location, list) and len(location) == 2:
-                if isinstance(location[0], int) and isinstance(location[1], int):
-                    self.window_location = [int(location[0]), int(location[1])]
-                    location_loaded = True
-                else:
-                    self.printer.error("open()", "MODEL_OPEN_DYN_LOCATION_NOT_INT", tb=False)
-            else:
-                self.printer.error("open()", "MODEL_OPEN_DYN_LOCATION_LIST", tb=False)
+        if self.parameters["full-screen"]:
 
-        if not location_loaded:
-            if not self.set_location_x():
-                return False
-            if not self.set_location_y():
-                return False
+            no_titlebar = True
+            keep_on_top = True
 
-        # -----------------------------------------------------------------
+            self.window_location = [
+                self.wageo["screen_x_min"],
+                self.wageo["screen_x_min"]
+            ]
 
-        size_loaded = False
-        if size is not None:
-            if isinstance(size, list) and len(size) == 2:
-                if isinstance(size[0], int) and isinstance(size[1], int):
-                    self.window_size = [int(size[0]), int(size[1])]
-                    size_loaded = True
-                else:
-                    self.printer.error("open()", "MODEL_OPEN_DYN_SIZE_NOT_INT", tb=False)
-            else:
-                self.printer.error("open()", "MODEL_OPEN_DYN_SIZE_LIST", tb=False)
+            self.window_size = [
+                self.wageo["screen_width"],
+                self.wageo["screen_height"]
+            ]
 
-        if not size_loaded:
-            if not self.set_size_width():
-                return False
-            if not self.set_size_height():
-                return False
+        else:
+
+            no_titlebar = False
+            keep_on_top = False
+
+            location_loaded = False
+            if location is not None:
+                if isinstance(location, list) and len(location) == 2:
+                    if isinstance(location[0], int) and isinstance(location[1], int):
+                        self.window_location = [int(location[0]), int(location[1])]
+                        location_loaded = True
+
+            if not location_loaded:
+                if not self.set_location_x():
+                    return False
+                if not self.set_location_y():
+                    return False
+
+            size_loaded = False
+            if size is not None:
+                if isinstance(size, list) and len(size) == 2:
+                    if isinstance(size[0], int) and isinstance(size[1], int):
+                        self.window_size = [int(size[0]), int(size[1])]
+                        size_loaded = True
+
+            if not size_loaded:
+                if not self.set_size_width():
+                    return False
+                if not self.set_size_height():
+                    return False
 
         # -----------------------------------------------------------------
 
@@ -447,23 +496,29 @@ class Model:
 
         self.window = self.fsg.Window(self.title, self.layout,
                                       location=list_to_tuple(self.window_location),
-                                      size=list_to_tuple(self.window_size))
+                                      size=list_to_tuple(self.window_size),
+                                      margins=(0, 0),
+                                      element_padding=(0, 0),
+                                      no_titlebar=no_titlebar,
+                                      keep_on_top=keep_on_top,
+                                      enable_close_attempted_event=True)
 
         self.window.finalize()
+
         self.window_size = self.window.current_size_accurate()
 
         relocation = False
         if self.reperc.match(str(self.parameters["location_x"])) and not isinstance(self.parameters["width"], int):
             percent = int(self.parameters["location_x"].split("%")[0])
-            self.window_location[0] = self.windows.wageo["x_min"]
-            self.window_location[0] += int((self.windows.wageo["width"] / 100) * percent)
+            self.window_location[0] = self.wageo["x_min"]
+            self.window_location[0] += int((self.wageo["width"] / 100) * percent)
             self.window_location[0] -= int(self.window_size[0] / 2)
             relocation = True
 
         if self.reperc.match(str(self.parameters["location_y"])) and not isinstance(self.parameters["height"], int):
             percent = int(self.parameters["location_y"].split("%")[0])
-            self.window_location[1] = self.windows.wageo["y_min"]
-            self.window_location[1] += int((self.windows.wageo["height"] / 100) * percent)
+            self.window_location[1] = self.wageo["y_min"]
+            self.window_location[1] += int((self.wageo["height"] / 100) * percent)
             self.window_location[1] -= int(self.window_size[1] / 2)
             relocation = True
 
@@ -476,11 +531,6 @@ class Model:
             self.window.TKroot.wm_geometry(newGeometry=geometry)
             self.window.TKroot.update()
 
-            print("# -----------------------")
-            print("# " + self.model)
-            print("# width: " + str(self.window_size[0]))
-            print("# height: " + str(self.window_size[1]))
-
         self.window_dpi = self.window.TKroot.winfo_fpixels('1i')
 
         # -----------------------------------------------------------------
@@ -492,6 +542,9 @@ class Model:
     # ---------------------------------------------------------------------
 
     def show(self):
+        """
+        test
+        """
         self.is_hide = False
         self.window.UnHide()
 
@@ -500,14 +553,49 @@ class Model:
     # ---------------------------------------------------------------------
 
     def hide(self):
+        """
+        test
+        """
         self.is_hide = True
         self.window.hide()
+
+    # ---------------------------------------------------------------------
+    # / Créer un Bind
+    # ---------------------------------------------------------------------
+
+    def bind(self, binds: dict):
+        """
+        :param binds:
+        :return:
+        """
+        error = False
+
+        for bind_updated in binds:
+
+            if all(k in bind_updated for k in ("item", "bind_string", "bind_key")):  # TODO: Créer erreur spécifique
+
+                item = bind_updated["item"]
+                bind_string = bind_updated["bind_string"]
+                bind_key = bind_updated["bind_key"]
+
+                if item is None:
+                    self.window.bind(bind_string, bind_key)
+                elif item in list(self.items_list.keys()):
+                    self.window[item].bind(bind_string, bind_key)
+
+        if error:
+            return False
+        else:
+            return True
 
     # ---------------------------------------------------------------------
     # / Retourne la taille de la fenêtre
     # ---------------------------------------------------------------------
 
     def get_size(self):
+        """
+        :return:
+        """
         return self.window_size
 
     # ---------------------------------------------------------------------
@@ -515,6 +603,9 @@ class Model:
     # ---------------------------------------------------------------------
 
     def get_location(self):
+        """
+        :return:
+        """
         return self.window_location
 
     # ---------------------------------------------------------------------
@@ -522,6 +613,9 @@ class Model:
     # ---------------------------------------------------------------------
 
     def get_dpi(self):
+        """
+        :return:
+        """
         return self.window_dpi
 
     # ---------------------------------------------------------------------
@@ -529,6 +623,10 @@ class Model:
     # ---------------------------------------------------------------------
 
     def get_item(self, item: str):
+        """
+        :param item:
+        :return:
+        """
         return self.window[item].get()
 
     # ---------------------------------------------------------------------
@@ -536,17 +634,23 @@ class Model:
     # ---------------------------------------------------------------------
 
     def update(self, items):
+        """
+        :param items:
+        :return:
+        """
+
+        # TODO: try/except pour virer le error = False
 
         error = False
 
         for item_updated in items:
 
-            if all(k in item_updated for k in ("key", "mode")):
+            if all(k in item_updated for k in ("item", "mode")):  # TODO: Créer erreur spécifique
 
-                key = item_updated["key"]
+                key = item_updated["item"]
                 mode = item_updated["mode"]
 
-                if key in list(self.items_list.keys()):
+                if key in list(self.items_list.keys()):  # TODO: Créer erreur spécifique
 
                     key_type = self.items_list[key]["type"]
 
@@ -554,15 +658,12 @@ class Model:
 
                         if key_type == "column":
                             error = True
-                            self.printer.error("update()", "MODEL_NO_UPDATE_ITEM", info="column", tb=False)
 
                         if key_type == "frame":
                             error = True
-                            self.printer.error("update()", "MODEL_NO_UPDATE_ITEM", info="frame", tb=False)
 
                         if key_type == "canvas":
                             error = True
-                            self.printer.error("update()", "MODEL_NO_UPDATE_ITEM", info="canvas", tb=False)
 
                         if key_type == "label":
 
@@ -570,12 +671,12 @@ class Model:
                                 value = item_updated["value"]
 
                                 if mode == "add":
-                                    self.window[item_updated["key"]].print(value)
+                                    self.window[item_updated["item"]].print(value)
                                 elif mode == "replace":
-                                    self.window[item_updated["key"]].update(value)
+                                    self.window[item_updated["item"]].update(value)
 
                             if mode == "clear":
-                                self.window[item_updated["key"]].update()
+                                self.window[item_updated["item"]].update()
 
                         if key_type == "in_line":
 
@@ -583,13 +684,13 @@ class Model:
                                 value = item_updated["value"]
 
                                 if mode == "add":
-                                    value = self.window[item_updated["key"]].get() + value
-                                    self.window[item_updated["key"]].update(value)
+                                    value = self.window[item_updated["item"]].get() + value
+                                    self.window[item_updated["item"]].update(value)
                                 elif mode == "replace":
-                                    self.window[item_updated["key"]].update(value)
+                                    self.window[item_updated["item"]].update(value)
 
                             if mode == "clear":
-                                self.window[item_updated["key"]].update("")
+                                self.window[item_updated["item"]].update("")
 
                         if key_type == "in_lines":
 
@@ -608,8 +709,8 @@ class Model:
                                     else:
                                         truncate_width = self.items_list[key]["truncate_width"]
 
-                                    max_chars = self.window[item_updated["key"]].Size[0]
-                                    max_lines = self.window[item_updated["key"]].Size[1]
+                                    max_chars = self.window[item_updated["item"]].Size[0]
+                                    max_lines = self.window[item_updated["item"]].Size[1]
 
                                     lines = ""
                                     lines_list = self.window[key].get().split("\n")
@@ -638,31 +739,24 @@ class Model:
 
                         if key_type == "button":
                             error = True
-                            self.printer.error("update()", "MODEL_NO_UPDATE_ITEM", info="button", tb=False)
 
                         if key_type == "button_file":
                             error = True
-                            self.printer.error("update()", "MODEL_NO_UPDATE_ITEM", info="button_file", tb=False)
 
                         if key_type == "button_files":
                             error = True
-                            self.printer.error("update()", "MODEL_NO_UPDATE_ITEM", info="button_files", tb=False)
 
                         if key_type == "button_save":
                             error = True
-                            self.printer.error("update()", "MODEL_NO_UPDATE_ITEM", info="button_save", tb=False)
 
                         if key_type == "button_folder":
                             error = True
-                            self.printer.error("update()", "MODEL_NO_UPDATE_ITEM", info="button_folder", tb=False)
 
                         if key_type == "button_calendar":
                             error = True
-                            self.printer.error("update()", "MODEL_NO_UPDATE_ITEM", info="button_calendar", tb=False)
 
                         if key_type == "button_color":
                             error = True
-                            self.printer.error("update()", "MODEL_NO_UPDATE_ITEM", info="button_color", tb=False)
 
                         if key_type == "combo":
 
@@ -674,39 +768,34 @@ class Model:
                                 if mode == "add":
 
                                     if isinstance(value, str) and isinstance(default_value, str):
-                                        value = self.window[item_updated["key"]].get().append(value)
+                                        value = self.window[item_updated["item"]].get().append(value)
                                         if default_value in value:
-                                            self.window[item_updated["key"]].update(value, default_value)
+                                            self.window[item_updated["item"]].update(value, default_value)
                                         else:
                                             error = True
-                                            self.printer.error("update()", "MODEL_COMBO_DEFAULT", tb=False)
                                     else:
                                         error = True
-                                        self.printer.error("update()", "MODEL_COMBO_VALUE", tb=False)
 
                                 elif mode == "replace":
                                     if isinstance(value, list) and isinstance(default_value, str):
                                         if default_value in value:
-                                            self.window[item_updated["key"]].update(value, default_value)
+                                            self.window[item_updated["item"]].update(value, default_value)
                                         else:
                                             error = True
-                                            self.printer.error("update()", "MODEL_COMBO_DEFAULT", tb=False)
                                     else:
                                         error = True
-                                        self.printer.error("update()", "MODEL_COMBO_VALUE", tb=False)
 
                             else:
                                 if mode == "clear":
-                                    self.window[item_updated["key"]].update("", "")
+                                    self.window[item_updated["item"]].update("", "")
                                 else:
                                     error = True
-                                    self.printer.error("update()", "MODEL_COMBO_UPDATE", tb=False)
 
                         if key_type == "progress_bar":
 
                             if "value" in item_updated:
 
-                                max_value = self.window[item_updated["key"]].MaxValue
+                                max_value = self.window[item_updated["item"]].MaxValue
                                 value = item_updated["value"]
 
                                 if isinstance(value, int):
@@ -714,7 +803,7 @@ class Model:
                                     if value <= max_value:
 
                                         if mode == "add":
-                                            current_count = self.window[item_updated["key"]]
+                                            current_count = self.window[item_updated["item"]]
                                             current_count = current_count.TKProgressBar.TKProgressBarForReal['value']
 
                                             if current_count is None:
@@ -725,29 +814,25 @@ class Model:
                                             if value > max_value:
                                                 value = max_value
 
-                                            self.window[item_updated["key"]].update(value)
+                                            self.window[item_updated["item"]].update(value)
 
                                         elif mode == "replace":
-                                            self.window[item_updated["key"]].update(value)
+                                            self.window[item_updated["item"]].update(value)
 
                                     else:
                                         error = True
-                                        self.printer.error("update()", "MODEL_PROGRESS_BAR_SUP_MAX", tb=False)
 
                                 else:
                                     error = True
-                                    self.printer.error("update()", "MODEL_PROGRESS_BAR_INT", tb=False)
 
                             else:
                                 if mode == "clear":
-                                    self.window[item_updated["key"]].update(0)
+                                    self.window[item_updated["item"]].update(0)
                                 else:
                                     error = True
-                                    self.printer.error("update()", "MODEL_NO_UPDATE_ITEM", info="progress_bar", tb=False)
 
                     else:
                         error = True
-                        self.printer.error("update()", "MODEL_UPDATE_MODE", tb=False)
 
         if error:
             return False
@@ -756,9 +841,97 @@ class Model:
             return True
 
     # ---------------------------------------------------------------------
+    # / Dessine une image sur le graphique
+    # / Retourne True
+    # / Sinon retourne False
+    # ---------------------------------------------------------------------
+
+    def graph_draw_image(self, graph: str, location: list, image=None):
+        """
+        :param graph:
+        :param location:
+        :param image:
+        :return:
+        """
+        figure = None
+
+        if graph in list(self.items_list.keys()):  # TODO: Créer erreur spécifique
+
+            # TODO: Try/except
+
+            with BytesIO() as output:
+                image.save(output, format="PNG")
+                image_data = output.getvalue()
+
+            figure = self.window[graph].draw_image(data=image_data, location=location)
+
+        if figure is None:
+            return False
+        else:
+            return figure
+
+    # ---------------------------------------------------------------------
+    # / Fait monter une figure sur l'axe Z
+    # ---------------------------------------------------------------------
+
+    def graph_bring_figure_to_front(self, graph: str, figure: int) -> bool:
+        """
+        :param graph:
+        :param figure:
+        :return:
+        """
+        try:
+            self.window[graph].bring_figure_to_front(figure)
+            return True
+        except Exception as e:
+            logging.exception(e)
+            return False
+
+    # ---------------------------------------------------------------------
+    # / Fait descendre une figure sur l'axe Z
+    # ---------------------------------------------------------------------
+
+    def graph_send_figure_to_back(self, graph: str, figure: int) -> bool:
+        """
+        :param graph:
+        :param figure:
+        :return:
+        """
+        try:
+            self.window[graph].send_figure_to_back(figure)
+            return True
+        except Exception as e:
+            logging.exception(e)
+            return False
+
+    # ---------------------------------------------------------------------
+    # / Supprime toutes les figures
+    # ---------------------------------------------------------------------
+
+    def graph_erase(self, graph: str):
+        """
+        :param graph:
+        """
+        self.window[graph].erase()
+
+    # ---------------------------------------------------------------------
+    # / Supprimer une figure
+    # ---------------------------------------------------------------------
+
+    def graph_delete_figure(self, graph: str, figure: str):
+        """
+        :param graph:
+        :param figure:
+        """
+        self.window[graph].delete_figure(figure)
+
+    # ---------------------------------------------------------------------
     # / Ferme la fenêtre
     # ---------------------------------------------------------------------
 
     def close(self):
+        """
+        :return:
+        """
         self.window.close()
         return True

@@ -1,9 +1,13 @@
-# -------------------------------------------------------------------------
-# / Converti une List en Tuple
-# -------------------------------------------------------------------------
+"""
+Interpreter.py
+"""
 
 
 def list_to_tuple(ll):
+    """
+    :param ll:
+    :return:
+    """
     return tuple(list_to_tuple(x) for x in ll) if type(ll) is list else ll
 
 
@@ -16,6 +20,9 @@ def list_to_tuple(ll):
 # -------------------------------------------------------------------------
 
 class Interpreter:
+    """
+    CLass Interpreter
+    """
 
     def __init__(self, fsg, config, window):
 
@@ -38,7 +45,9 @@ class Interpreter:
             "g": ["group", "'str'"],
             "df": ["default", "'bool'"],
             "dv": ["default_value", "'str'"],
-            "tl": ["tab_location", ["top", "topleft", "topright", "left", "lefttop", "leftbottom", "right", "righttop", "rightbottom", "bottom", "bottomleft", "bottomright"]],
+            "tl": ["tab_location",
+                   ["top", "topleft", "topright", "left", "lefttop", "leftbottom", "right", "righttop", "rightbottom",
+                    "bottom", "bottomleft", "bottomright"]],
             "ro": ["readonly", "'bool'"],
             "av": ["vertical_alignment", ["top", "center", "bottom"]],
             "ae": ["element_justification", ["left", "center", "right"]],
@@ -49,17 +58,19 @@ class Interpreter:
             "xx": ["expand_x", "'bool'"],
             "xy": ["expand_y", "'bool'"],
             "tw": ["truncate_height", "'bool'"],
-            "th": ["truncate_width", "'bool'"]
+            "th": ["truncate_width", "'bool'"],
+            "bgc": ["background_color", "'str'"]
         }
 
         # -----------------------------------------------------------------
 
         self.config["items"] = {
-            "column": ["k", "p", "s", "sc", "scvo", "av", "ae", "xx", "xy"],
+            "column": ["k", "p", "s", "sc", "scvo", "av", "ae", "xx", "xy", "bgc"],
             "tab_group": ["k", "p", "s", "f", "tl", "xx", "xy"],
             "tab": ["k", "p", "d", "ae", "xx", "xy"],
             "frame": ["k", "p", "s", "av", "ae", "f", "xx", "xy"],
-            "canvas": ["k", "p", "s", "f", "xx", "xy"],
+            "canvas": ["k", "p", "s", "xx", "xy"],
+            "graph": ["k", "p", "s", "bgc"],
             "label": ["k", "p", "s", "f", "xx", "xy", "v"],
             "progress_bar": ["k", "p", "s", "xx", "xy", "v"],
             "in_line": ["k", "p", "s", "ro", "f", "xx", "xy", "v"],
@@ -99,7 +110,10 @@ class Interpreter:
     # ---------------------------------------------------------------------
 
     def create_parameters(self, item):
-
+        """
+        :param item:
+        :return:
+        """
         parameters = {}
         if "k" in item[0]:
             parameters["t"] = item[0]["t"]
@@ -122,7 +136,10 @@ class Interpreter:
     # ---------------------------------------------------------------------
 
     def create_layout(self, items):
-
+        """
+        :param items:
+        :return:
+        """
         items_list = {}
         layout, items_list = self.create_items(items, items_list)
 
@@ -133,6 +150,9 @@ class Interpreter:
     # ---------------------------------------------------------------------
 
     def items(self):
+        """
+        :return:
+        """
         return self.config["items"]
 
     # ---------------------------------------------------------------------
@@ -140,6 +160,9 @@ class Interpreter:
     # ---------------------------------------------------------------------
 
     def trigger_items(self):
+        """
+        :return:
+        """
         return self.config["trigger_items"]
 
     # ---------------------------------------------------------------------
@@ -147,6 +170,11 @@ class Interpreter:
     # ---------------------------------------------------------------------
 
     def create_items(self, items=None, items_list=None):
+        """
+        :param items:
+        :param items_list:
+        :return:
+        """
 
         layout = []
 
@@ -171,6 +199,9 @@ class Interpreter:
                     layout[row_c].append(rl)
                 elif item[0]["t"] == "canvas":
                     rl, items_list = self.add_canvas(item, items_list)
+                    layout[row_c].append(rl)
+                elif item[0]["t"] == "graph":
+                    rl, items_list = self.add_graph(item, items_list)
                     layout[row_c].append(rl)
                 elif item[0]["t"] == "label":
                     rl, items_list = self.add_label(item, items_list)
@@ -224,7 +255,11 @@ class Interpreter:
     # ---------------------------------------------------------------------
 
     def add_column(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -250,10 +285,19 @@ class Interpreter:
             expand_y=parameters["xy"]
         )
 
+        if parameters["bgc"] is not None:
+            new_item.BackgroundColor = parameters["bgc"]
+        else:
+            new_item.BackgroundColor = self.fsg.theme_background_color()
+
         return new_item, items_list
 
     def add_tab_group(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -281,7 +325,11 @@ class Interpreter:
         return new_item, items_list
 
     def add_tab(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -308,7 +356,11 @@ class Interpreter:
         return new_item, items_list
 
     def add_frame(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -337,7 +389,11 @@ class Interpreter:
         return new_item, items_list
 
     def add_canvas(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -347,7 +403,6 @@ class Interpreter:
             }
 
         new_item = self.fsg.Canvas(
-            parameters["v"],
             key=parameters["k"],
             pad=parameters["p"],
             size=parameters["s"],
@@ -359,8 +414,44 @@ class Interpreter:
 
         return new_item, items_list
 
-    def add_label(self, item, items_list):
+    def add_graph(self, item, items_list):
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
+        items_list = items_list
+        parameters = self.create_parameters(item)
 
+        if "t" in parameters:
+            items_list[parameters["k"]] = {
+                "type": parameters["t"]
+            }
+
+        new_item = self.fsg.Graph(
+            key=parameters["k"],
+            pad=parameters["p"],
+            canvas_size=parameters["s"],
+            graph_bottom_left=(0, parameters["s"][1]),
+            graph_top_right=(parameters["s"][0], 0),
+            change_submits=True,
+            motion_events=True,
+            enable_events=True
+        )
+
+        if parameters["bgc"] is not None:
+            new_item.BackgroundColor = parameters["bgc"]
+        else:
+            new_item.BackgroundColor = self.fsg.theme_background_color()
+
+        return new_item, items_list
+
+    def add_label(self, item, items_list):
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -382,7 +473,11 @@ class Interpreter:
         return new_item, items_list
 
     def add_progress_bar(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -403,7 +498,11 @@ class Interpreter:
         return new_item, items_list
 
     def add_in_line(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -426,7 +525,11 @@ class Interpreter:
         return new_item, items_list
 
     def add_in_lines(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -452,7 +555,11 @@ class Interpreter:
         return new_item, items_list
 
     def add_in_radio(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -475,7 +582,11 @@ class Interpreter:
         return new_item, items_list
 
     def add_in_checkbox(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -497,7 +608,11 @@ class Interpreter:
         return new_item, items_list
 
     def add_in_combo(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -520,7 +635,11 @@ class Interpreter:
         return new_item, items_list
 
     def add_button(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -541,7 +660,11 @@ class Interpreter:
         return new_item, items_list
 
     def add_button_file(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -563,7 +686,11 @@ class Interpreter:
         return new_item, items_list
 
     def add_button_files(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -585,7 +712,11 @@ class Interpreter:
         return new_item, items_list
 
     def add_button_save(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -607,7 +738,11 @@ class Interpreter:
         return new_item, items_list
 
     def add_button_folder(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -629,7 +764,11 @@ class Interpreter:
         return new_item, items_list
 
     def add_button_calendar(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
@@ -651,7 +790,11 @@ class Interpreter:
         return new_item, items_list
 
     def add_button_color(self, item, items_list):
-
+        """
+        :param item:
+        :param items_list:
+        :return:
+        """
         items_list = items_list
         parameters = self.create_parameters(item)
 
