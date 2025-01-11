@@ -1,5 +1,5 @@
 
-# <p align="center">ArchGUI</p>
+![Image](support/logo-archgui.png)
   
 Archgui est un module basé sur `FreeSimpleGUI`. 
 Il permet la création de modèle de fenêtre à partir d’un fichier `.json` et d’un fichier `.py` pour les events
